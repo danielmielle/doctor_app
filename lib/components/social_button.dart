@@ -17,7 +17,7 @@ class SocialButton extends StatelessWidget {
       ),
       onPressed: () {},
       child: SizedBox(
-        width: Config.widthSize * 0.2,
+        width: Config.widthSize * 0.4,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[

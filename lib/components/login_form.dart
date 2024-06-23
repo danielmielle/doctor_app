@@ -1,6 +1,10 @@
 import 'package:doctor_app/components/button.dart';
+import 'package:doctor_app/providers/dio_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../main.dart';
+import '../models/auth_model.dart';
 import '../utils/config.dart';
 
 class LoginForm extends StatefulWidget {
@@ -55,19 +59,34 @@ class _LoginFormState extends State<LoginForm> {
                 },
                 icon: obsecurePass
                     ? const Icon(Icons.visibility_off_outlined,
-                        color: Colors.black38)
+                    color: Colors.black38)
                     : const Icon(Icons.visibility_outlined,
-                        color: Config.primaryColor),
+                    color: Config.primaryColor),
               ),
             ),
           ),
           Config.spaceSmall(context),
-          Button(
-            width: double.infinity,
-            title: 'Sign In',
-            disable: false,
-            onPressed: () {
-              Navigator.of(context).pushNamed('main');
+          Consumer<AuthModel>(
+            builder: (context, auth, child) {
+              return Button(
+                width: double.infinity,
+                title: 'Sign In',
+                disable: false,
+                onPressed: () async {
+                  // ///login here
+                  final token = await DioProvider()
+                      .getToken(_emailController.text, _passController.text);
+
+                  // Navigator.of(context).pushNamed('main');
+                  // final user = await DioProvider().getUser(token);
+                  // print(user);
+
+                  if (token != null && token.isNotEmpty) {
+                    auth.loginSuccess();
+                    MyApp.navigatorKey.currentState!.pushNamed('main');
+                  }
+                },
+              );
             },
           ),
         ],

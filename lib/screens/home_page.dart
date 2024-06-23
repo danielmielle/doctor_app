@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:doctor_app/components/doctor_card.dart';
+import 'package:doctor_app/providers/dio_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../components/appointment_card.dart';
 import '../utils/config.dart';
@@ -13,6 +17,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  Map<String, dynamic> user = {};
   List<Map<String, dynamic>> medCat = [
     {
       "icon": FontAwesomeIcons.userDoctor,
@@ -40,6 +45,26 @@ class _HomePageState extends State<HomePage> {
     },
   ];
 
+  Future<void> getData() async {
+    ///get token from share preferences
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token') ?? '';
+
+    if (token.isNotEmpty && token != '') {
+      final response = await DioProvider().getUser(token);
+      setState(() {
+        user = json.decode(response);
+        print(user);
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    getData();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     Config.init(context);
@@ -55,17 +80,17 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
                     Text(
-                      'Bia',
-                      style: TextStyle(
+                      user['name'],
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       child: CircleAvatar(
                         radius: 30,
                         backgroundImage: AssetImage(
@@ -76,7 +101,7 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
                 Config.spaceMedium(context),
-            
+
                 ///category listing
                 const Text(
                   'Category',
@@ -86,6 +111,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 Config.spaceSmall(context),
+
                 ///build categories
                 SizedBox(
                   height: Config.heightSize * 0.05,
@@ -109,7 +135,9 @@ class _HomePageState extends State<HomePage> {
                                   medCat[index]['icon'],
                                   color: Colors.white,
                                 ),
-                                const SizedBox(width: 20,),
+                                const SizedBox(
+                                  width: 20,
+                                ),
                                 Text(
                                   medCat[index]['category'],
                                   style: const TextStyle(
@@ -134,6 +162,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 Config.spaceSmall(context),
+
                 ///display appointment card
                 const AppointmentCard(),
                 Config.spaceSmall(context),
@@ -144,11 +173,14 @@ class _HomePageState extends State<HomePage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+
                 ///list of top doctors
                 Config.spaceSmall(context),
                 Column(
-                  children: List.generate(10, (index){
-                    return const DoctorCard();
+                  children: List.generate(10, (index) {
+                    return const DoctorCard(
+                      route: 'doctor_details',
+                    );
                   }),
                 )
               ],
