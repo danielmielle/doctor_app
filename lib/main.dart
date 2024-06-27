@@ -56,7 +56,7 @@ class MyApp extends StatelessWidget {
           '/':(context)=> const AuthPage(),
           /// main layout
           'main':(context)=> const MainLayout(),
-          'doctor_details':(context)=> const DoctorDetails(),
+          // 'doctor_details':(context)=> const DoctorDetails(),
           'booking_page':(context)=> const BookingPage(),
           'success_booking':(context)=> const AppointmentBooked(),
         },

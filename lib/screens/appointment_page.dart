@@ -1,4 +1,8 @@
+import 'dart:convert';
+
+import 'package:doctor_app/providers/dio_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/config.dart';
 
@@ -15,47 +19,45 @@ enum FilterStatus { upcoming, complete, cancel }
 class _AppointmentPageState extends State<AppointmentPage> {
   FilterStatus status = FilterStatus.upcoming;
   Alignment _alignment = Alignment.centerLeft;
-  List<dynamic> schedules = [
-    {
-      "doctor_name": "Daniel Bia",
-      "doctor_profile": "assets/bia.jpg",
-      "category": "Dental",
-      "status": FilterStatus.upcoming,
-    },
-    {
-      "doctor_name": "Ian How",
-      "doctor_profile": "assets/bia.jpg",
-      "category": "Cardiology",
-      "status": FilterStatus.complete,
-    },
-    {
-      "doctor_name": "Jenny Lim",
-      "doctor_profile": "assets/bia.jpg",
-      "category": "Respiration",
-      "status": FilterStatus.complete,
-    },
-    {
-      "doctor_name": "Liza Monte",
-      "doctor_profile": "assets/bia.jpg",
-      "category": "General",
-      "status": FilterStatus.cancel,
+  List<dynamic> schedules = [];
+
+  Future<void> getAppointments() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token') ?? '';
+    final appointment = await DioProvider().getAppointments(token);
+
+    if (mounted) {
+      setState(() {
+        schedules = json.decode(appointment);
+        // print(schedules);
+      });
     }
-  ];
+  }
+
+  @override
+  void initState() {
+    getAppointments();
+    super.initState();
+  }
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     List<dynamic> filteredSchedules = schedules.where((var schedule) {
-      // switch (schedule['status']) {
-      //   case 'upcoming':
-      //     schedule['status'] = FilterStatus.upcoming;
-      //     break;
-      //   case 'complete':
-      //     schedule['status'] = FilterStatus.complete;
-      //     break;
-      //   case 'cancel':
-      //     schedule['status'] = FilterStatus.cancel;
-      //     break;
-      // }
+      switch (schedule['status']) {
+        case 'upcoming':
+          schedule['status'] = FilterStatus.upcoming;
+          break;
+        case 'complete':
+          schedule['status'] = FilterStatus.complete;
+          break;
+        case 'cancel':
+          schedule['status'] = FilterStatus.cancel;
+          break;
+      }
       return schedule['status'] == status;
     }).toList();
     Config.init(context);
@@ -163,8 +165,8 @@ class _AppointmentPageState extends State<AppointmentPage> {
                           Row(
                             children: [
                               CircleAvatar(
-                                backgroundImage:
-                                    AssetImage(schedules['doctor_profile']),
+                                backgroundImage: NetworkImage(
+                                    'http://10.0.2.2:8000${schedules['doctor_profile']}'),
                               ),
                               const SizedBox(width: 15),
                               Column(
@@ -190,7 +192,11 @@ class _AppointmentPageState extends State<AppointmentPage> {
                             ],
                           ),
                           const SizedBox(height: 15),
-                          const ScheduleCard(),
+                          ScheduleCard(
+                            date: schedules['date'],
+                            day: schedules['day'],
+                            time: schedules['time'],
+                          ),
                           const SizedBox(height: 15),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -238,7 +244,12 @@ class _AppointmentPageState extends State<AppointmentPage> {
 }
 
 class ScheduleCard extends StatelessWidget {
-  const ScheduleCard({super.key});
+  const ScheduleCard(
+      {super.key, required this.date, required this.day, required this.time});
+
+  final String date;
+  final String day;
+  final String time;
 
   @override
   Widget build(BuildContext context) {
@@ -249,33 +260,33 @@ class ScheduleCard extends StatelessWidget {
       ),
       width: double.infinity,
       padding: const EdgeInsets.all(20),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
-          Icon(
+          const Icon(
             Icons.calendar_today,
             color: Config.primaryColor,
             size: 15,
           ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           Text(
-            'Monday, 06/15/2024',
-            style: TextStyle(
+            '$day, $date',
+            style: const TextStyle(
               color: Config.primaryColor,
             ),
           ),
-          SizedBox(width: 30),
-          Icon(
+          const SizedBox(width: 30),
+          const Icon(
             Icons.access_alarm,
             color: Config.primaryColor,
             size: 17,
           ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           Flexible(
               child: Text(
-            '2:00 PM',
-            style: TextStyle(color: Config.primaryColor),
+            time,
+            style: const TextStyle(color: Config.primaryColor),
           ))
         ],
       ),

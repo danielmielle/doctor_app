@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:doctor_app/components/button.dart';
 import 'package:doctor_app/providers/dio_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../main.dart';
 import '../models/auth_model.dart';
@@ -59,9 +62,9 @@ class _LoginFormState extends State<LoginForm> {
                 },
                 icon: obsecurePass
                     ? const Icon(Icons.visibility_off_outlined,
-                    color: Colors.black38)
+                        color: Colors.black38)
                     : const Icon(Icons.visibility_outlined,
-                    color: Config.primaryColor),
+                        color: Config.primaryColor),
               ),
             ),
           ),
@@ -81,9 +84,32 @@ class _LoginFormState extends State<LoginForm> {
                   // final user = await DioProvider().getUser(token);
                   // print(user);
 
-                  if (token != null && token.isNotEmpty) {
-                    auth.loginSuccess();
-                    MyApp.navigatorKey.currentState!.pushNamed('main');
+                  if (token != null) {
+                    // auth.loginSuccess({}, {});
+
+                    ///get token from share preferences
+                    final SharedPreferences prefs =
+                        await SharedPreferences.getInstance();
+                    final tokenValue = prefs.getString('token') ?? '';
+
+                    if (tokenValue.isNotEmpty && tokenValue != '') {
+                      final response = await DioProvider().getUser(tokenValue);
+                      if (response != null) {
+                        setState(() {
+                          Map<String, dynamic> appointment = {};
+                          final user = json.decode(response);
+
+                          ///check if any appointment today
+                          for (var doctorData in user['doctor']) {
+                            if (doctorData['appointments'] != null) {
+                              appointment = doctorData;
+                            }
+                          }
+                          auth.loginSuccess(user, appointment);
+                          MyApp.navigatorKey.currentState!.pushNamed('main');
+                        });
+                      }
+                    }
                   }
                 },
               );

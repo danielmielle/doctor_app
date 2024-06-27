@@ -1,5 +1,7 @@
 import 'package:doctor_app/screens/appointment_page.dart';
+import 'package:doctor_app/screens/fav_page.dart';
 import 'package:doctor_app/screens/home_page.dart';
+import 'package:doctor_app/screens/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -28,7 +30,9 @@ class _MainLayoutState extends State<MainLayout> {
         }),
         children: const <Widget>[
           HomePage(),
+          FavPage(),
           AppointmentPage(),
+          ProfilePage(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -49,8 +53,16 @@ class _MainLayoutState extends State<MainLayout> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
+            icon: FaIcon(FontAwesomeIcons.solidHeart),
+            label: 'Favorites',
+          ),
+          BottomNavigationBarItem(
             icon: FaIcon(FontAwesomeIcons.solidCalendarCheck),
             label: 'Appointment',
+          ),
+          BottomNavigationBarItem(
+            icon: FaIcon(FontAwesomeIcons.solidUser),
+            label: 'Profile',
           ),
         ],
       ),

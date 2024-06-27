@@ -116,7 +116,7 @@ class _SignUpFormState extends State<SignUpForm> {
                       );
 
                       if (token != null && token.isNotEmpty) {
-                        auth.loginSuccess();
+                        auth.loginSuccess({}, {});
                         MyApp.navigatorKey.currentState!.pushNamed('main');
                       } else {
                         // Handle invalid token
